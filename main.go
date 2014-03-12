@@ -5,7 +5,6 @@ import (
     "github.com/codegangsta/martini"
     "net/http"
     "strconv"
-    "fmt"
 )
 
 func main() {
@@ -21,11 +20,12 @@ func main() {
     )
     defer es.Close()
     m := martini.Classic()
+    // TODO: add auth and all that jazz
     m.Get("/stream", es.ServeHTTP)
     m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
         card := r.FormValue("card")
-        fmt.Println(card)
-        es.SendMessage(card, "stream", strconv.Itoa(id))
+        stream := r.FormValue("stream")
+        es.SendMessage(card, stream, strconv.Itoa(id))
         id++
     })
     m.Run()
