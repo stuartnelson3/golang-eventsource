@@ -2,6 +2,7 @@ package main
 
 import (
     eventsource "github.com/antage/eventsource/http"
+    "github.com/martini-contrib/cors"
     "github.com/codegangsta/martini"
     "net/http"
     "strconv"
@@ -20,12 +21,18 @@ func main() {
         },
     )
     defer es.Close()
+
     m := martini.Classic()
+    m.Use(cors.Allow(&cors.Options{
+        AllowOrigins:     []string{"http://*", "https://*"},
+        AllowMethods:     []string{"GET"},
+        AllowHeaders:     []string{"Origin"},
+    }))
     m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
-        token := r.FormValue("token")
-        if token != os.Getenv("TOKEN") {
-            return
-        }
+        // token := r.FormValue("token")
+        // if token != os.Getenv("TOKEN") {
+        //     return
+        // }
         es.ServeHTTP(w, r)
     })
     m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
