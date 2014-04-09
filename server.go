@@ -21,7 +21,6 @@ func main() {
     )
     defer es.Close()
     m := martini.Classic()
-    // TODO: add auth and all that jazz
     m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
         token := r.FormValue("token")
         if token != os.Getenv("TOKEN") {
