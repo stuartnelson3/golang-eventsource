@@ -6,7 +6,7 @@ import (
     "github.com/codegangsta/martini"
     "net/http"
     "strconv"
-    // "os"
+    "os"
 )
 
 func main() {
@@ -29,17 +29,17 @@ func main() {
         AllowHeaders:     []string{"Origin"},
     }))
     m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
-        // token := r.FormValue("token")
-        // if token != os.Getenv("TOKEN") {
-        //     return
-        // }
+        token := r.FormValue("token")
+        if token != os.Getenv("TOKEN") {
+            return
+        }
         es.ServeHTTP(w, r)
     })
     m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
-        // token := r.FormValue("token")
-        // if token != os.Getenv("TOKEN") {
-        //     return
-        // }
+        token := r.FormValue("token")
+        if token != os.Getenv("TOKEN") {
+            return
+        }
         card := r.FormValue("card")
         stream := r.FormValue("stream")
         es.SendMessage(card, stream, strconv.Itoa(id))
