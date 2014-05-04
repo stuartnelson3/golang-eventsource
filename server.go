@@ -27,35 +27,34 @@ func main() {
     go MonitorAndReap(esMap)
 
     m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
-        r.ParseForm()
         token := r.FormValue("token")
         if token != os.Getenv("TOKEN") {
             return
         }
 
-        streams := r.Form["streams[]"]
+        stream := r.FormValue("stream")
+        if stream == "" {
+            return
+        }
         // Loop through all stream identifiers
-        for i := 0; i < len(streams); i++ {
-            stream := streams[i]
-            // If es already exists, add connection to it
-            if es, prs := esMap[stream]; prs {
-                es.ServeHTTP(w, r)
-                fmt.Println("Using existing stream: ", stream)
-            } else {
-                // If es does not exist, create and add connection to it
-                es := eventsource.New(
-                    eventsource.DefaultSettings(),
-                    func(req *http.Request) [][]byte {
-                        return [][]byte{
-                            []byte("X-Accel-Buffering: no"),
-                            []byte("Access-Control-Allow-Origin: *"),
-                        }
-                    },
-                )
-                esMap[stream] = es
-                fmt.Println("Created new stream: ", stream)
-                es.ServeHTTP(w, r)
-            }
+        // If es already exists, add connection to it
+        if es, prs := esMap[stream]; prs {
+            es.ServeHTTP(w, r)
+            fmt.Println("Using existing stream: ", stream)
+        } else {
+            // If es does not exist, create and add connection to it
+            es := eventsource.New(
+                eventsource.DefaultSettings(),
+                func(req *http.Request) [][]byte {
+                    return [][]byte{
+                        []byte("X-Accel-Buffering: no"),
+                        []byte("Access-Control-Allow-Origin: *"),
+                    }
+                },
+            )
+            esMap[stream] = es
+            fmt.Println("Created new stream: ", stream)
+            es.ServeHTTP(w, r)
         }
     })
 
@@ -75,15 +74,13 @@ func main() {
 func MonitorAndReap(esMap map[string]eventsource.EventSource) {
     for {
         for stream, es := range esMap {
-            // This is never returning 0, so it's never removing users
-            // I don't think the user is ever signalling that it is stalled
+            fmt.Println(es.ConsumersCount())
             if es.ConsumersCount() == 0 {
                 es.Close()
                 delete(esMap, stream)
                 fmt.Println("Removed: ", stream)
             }
         }
-        time.Sleep(time.Second)
-        // time.Sleep(time.Minute)
+        time.Sleep(time.Minute)
     }
 }
