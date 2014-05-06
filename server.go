@@ -44,7 +44,11 @@ func main() {
 		} else {
 			// If es does not exist, create and add connection to it
 			es := eventsource.New(
-				eventsource.DefaultSettings(),
+				&eventsource.Settings{
+					Retry:          0,
+					Timeout:        2 * time.Second,
+					CloseOnTimeout: true,
+				},
 				func(req *http.Request) [][]byte {
 					return [][]byte{
 						[]byte("X-Accel-Buffering: no"),
@@ -74,7 +78,6 @@ func main() {
 func MonitorAndReap(esMap map[string]eventsource.EventSource) {
 	for {
 		for stream, es := range esMap {
-			fmt.Println(es.ConsumersCount())
 			if es.ConsumersCount() == 0 {
 				es.Close()
 				delete(esMap, stream)
