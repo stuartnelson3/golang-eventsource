@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	eventsource "github.com/antage/eventsource/http"
 	"github.com/codegangsta/martini"
 	"github.com/martini-contrib/cors"
-	eventsource "github.com/stuartnelson3/eventsource/http"
 	"net/http"
 	"os"
 	"strconv"
@@ -45,8 +45,8 @@ func main() {
 			// If es does not exist, create and add connection to it
 			es := eventsource.New(
 				&eventsource.Settings{
-					Retry:          0,
-					IdleTimeout:    30,
+					Retry:          0 * time.Second,
+					IdleTimeout:    30 * time.Second,
 					Timeout:        2 * time.Second,
 					CloseOnTimeout: true,
 				},
