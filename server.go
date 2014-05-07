@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	eventsource "github.com/antage/eventsource/http"
+	eventsource "github.com/antage/eventsource"
 	"github.com/codegangsta/martini"
 	"github.com/martini-contrib/cors"
 	"net/http"
