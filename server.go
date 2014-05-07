@@ -46,7 +46,7 @@ func main() {
 			es := eventsource.New(
 				&eventsource.Settings{
 					Retry:          0 * time.Second,
-					IdleTimeout:    30 * time.Second,
+					IdleTimeout:    30 * time.Minute,
 					Timeout:        2 * time.Second,
 					CloseOnTimeout: true,
 				},
