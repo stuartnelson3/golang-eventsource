@@ -45,7 +45,6 @@ func main() {
 			// If es does not exist, create and add connection to it
 			es := eventsource.New(
 				&eventsource.Settings{
-					Retry:          0 * time.Second,
 					IdleTimeout:    30 * time.Minute,
 					Timeout:        2 * time.Second,
 					CloseOnTimeout: true,
@@ -60,6 +59,7 @@ func main() {
 			esMap[stream] = es
 			fmt.Println("Created new stream: ", stream)
 			es.ServeHTTP(w, r)
+			es.SendRetryMessage(100 * time.Millisecond)
 		}
 	})
 
@@ -70,7 +70,7 @@ func main() {
 		}
 		card := r.FormValue("card")
 		stream := r.FormValue("stream")
-		esMap[stream].SendMessage(card, stream, strconv.Itoa(id))
+		esMap[stream].SendEventMessage(card, stream, strconv.Itoa(id))
 		id++
 	})
 	m.Run()
