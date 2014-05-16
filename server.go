@@ -18,13 +18,19 @@ func main() {
 
 	m := martini.Classic()
 	m.Use(cors.Allow(&cors.Options{
-		AllowOrigins: []string{"http://*", "https://*"},
-		AllowMethods: []string{"GET"},
-		AllowHeaders: []string{"Origin"},
+		AllowOrigins: []string{"*"},
 	}))
 
 	// Monitor and remove any dead es
 	go MonitorAndReap(esMap)
+
+	m.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.FormValue("token") != os.Getenv("TOKEN") {
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(200)
+	})
 
 	m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
 		token := r.FormValue("token")
