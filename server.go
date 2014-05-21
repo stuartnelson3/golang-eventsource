@@ -70,13 +70,14 @@ func main() {
 	})
 
 	m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
-		token := r.FormValue("token")
-		if token != os.Getenv("TOKEN") {
+		if r.FormValue("token") != os.Getenv("TOKEN") {
 			return
 		}
-		card := r.FormValue("card")
-		stream := r.FormValue("stream")
-		esMap[stream].SendEventMessage(card, stream, strconv.Itoa(id))
+		esMap[r.FormValue("stream")].SendEventMessage(
+			r.FormValue("card"),
+			r.FormValue("stream"),
+			strconv.Itoa(id),
+		)
 		id++
 	})
 	m.Run()
