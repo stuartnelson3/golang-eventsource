@@ -1,1 +1,1 @@
-web: server
+web: server -p=$PORT -token=$TOKEN

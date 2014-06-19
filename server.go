@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +13,11 @@ import (
 	"github.com/gorilla/pat"
 )
 
-func main() {
-	id := 1
-	es := eventsource.New(
+var (
+	port  = flag.String("p", "8080", "the port to listen on")
+	token = flag.String("token", "token123", "the app token")
+	id    = 1
+	es    = eventsource.New(
 		&eventsource.Settings{
 			Timeout:        5 * time.Second,
 			CloseOnTimeout: false,
@@ -27,41 +30,37 @@ func main() {
 			}
 		},
 	)
+)
+
+func main() {
+
+	flag.Parse()
+
 	defer es.Close()
 
 	m := pat.New()
-	m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		token := r.FormValue("token")
-		if token != os.Getenv("TOKEN") {
-			return
-		}
-		log.Printf("Accepting ES connection")
-		es.ServeHTTP(w, r)
-	})
-	m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
-		token := r.FormValue("token")
-		if token != os.Getenv("TOKEN") {
-			return
-		}
-		card := r.FormValue("card")
-		stream := r.FormValue("stream")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		log.Printf("Sending message %s on stream %s", card, stream)
-		es.SendEventMessage(card, stream, strconv.Itoa(id))
-		id++
-	})
-	m.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("foo", "bar")
-		w.Write([]byte("Hello"))
-	})
+	m.Get("/stream", esHandler(es.ServeHTTP).ServeHTTP)
+	m.Post("/update_stream", esHandler(updateStream).ServeHTTP)
 
 	handler := handlers.LoggingHandler(os.Stdout, m)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
+
+	log.Printf("listening on %s", *port)
+	log.Fatal(http.ListenAndServe(":"+*port, handler))
+}
+
+type esHandler func(w http.ResponseWriter, r *http.Request)
+
+func (fn esHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.FormValue("token") != *token {
+		http.Error(w, "You are not authorized.", 403)
+		return
 	}
-	log.Println("listening on 3000")
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+
+	fn(w, r)
+}
+
+func updateStream(w http.ResponseWriter, r *http.Request) {
+	es.SendEventMessage(r.FormValue("card"), r.FormValue("stream"), strconv.Itoa(id))
+	id++
 }
