@@ -5,16 +5,21 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	eventsource "github.com/antage/eventsource"
-	"github.com/codegangsta/martini"
-	"github.com/martini-contrib/cors"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/pat"
 )
 
 func main() {
 	id := 1
 	es := eventsource.New(
-		eventsource.DefaultSettings(),
+		&eventsource.Settings{
+			Timeout:        5 * time.Second,
+			CloseOnTimeout: false,
+			IdleTimeout:    30 * time.Minute,
+		},
 		func(req *http.Request) [][]byte {
 			return [][]byte{
 				[]byte("X-Accel-Buffering: no"),
@@ -24,19 +29,13 @@ func main() {
 	)
 	defer es.Close()
 
-	m := martini.Classic()
-	m.Use(cors.Allow(&cors.Options{
-		AllowOrigins: []string{"http://*", "https://*"},
-		AllowMethods: []string{"GET"},
-		AllowHeaders: []string{"Origin"},
-	}))
+	m := pat.New()
 	m.Get("/stream", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		token := r.FormValue("token")
 		if token != os.Getenv("TOKEN") {
 			return
 		}
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		log.Printf("Accepting ES connection")
 		es.ServeHTTP(w, r)
 	})
@@ -48,10 +47,21 @@ func main() {
 		card := r.FormValue("card")
 		stream := r.FormValue("stream")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("foo", "bar")
 		log.Printf("Sending message %s on stream %s", card, stream)
 		es.SendEventMessage(card, stream, strconv.Itoa(id))
 		id++
 	})
-	m.Run()
+	m.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("foo", "bar")
+		w.Write([]byte("Hello"))
+	})
+
+	handler := handlers.LoggingHandler(os.Stdout, m)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	log.Println("listening on 3000")
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
