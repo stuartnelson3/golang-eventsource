@@ -43,6 +43,7 @@ func main() {
 		}
 		card := r.FormValue("card")
 		stream := r.FormValue("stream")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		es.SendEventMessage(card, stream, strconv.Itoa(id))
 		id++
 	})
