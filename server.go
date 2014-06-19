@@ -33,6 +33,7 @@ func main() {
 		if token != os.Getenv("TOKEN") {
 			return
 		}
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		es.ServeHTTP(w, r)
 	})
 	m.Post("/update_stream", func(w http.ResponseWriter, r *http.Request) {
