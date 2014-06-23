@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	eventsource "github.com/antage/eventsource"
-	"github.com/codegangsta/martini"
-	"github.com/martini-contrib/cors"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/antage/eventsource"
+	"github.com/codegangsta/martini"
+	"github.com/martini-contrib/cors"
 )
 
 func main() {
