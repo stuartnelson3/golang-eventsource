@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	eventsource "github.com/antage/eventsource"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/pat"
+	eventsource "github.com/stuartnelson3/eventsource"
 )
 
 var (
