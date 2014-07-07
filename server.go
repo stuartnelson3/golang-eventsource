@@ -33,14 +33,13 @@ var (
 )
 
 func main() {
-
 	flag.Parse()
 
 	defer es.Close()
 
 	m := pat.New()
-	m.Get("/stream", esHandler(es.ServeHTTP).ServeHTTP)
-	m.Post("/update_stream", esHandler(updateStream).ServeHTTP)
+	m.Get("/stream", tokenHandler(es.ServeHTTP))
+	m.Post("/update_stream", tokenHandler(updateStream))
 
 	handler := handlers.LoggingHandler(os.Stdout, m)
 
@@ -48,16 +47,16 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+*port, handler))
 }
 
-type esHandler func(w http.ResponseWriter, r *http.Request)
+func tokenHandler(fn func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.FormValue("token") != *token {
+			http.Error(w, "You are not authorized.", 403)
+			return
+		}
 
-func (fn esHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if r.FormValue("token") != *token {
-		http.Error(w, "You are not authorized.", 403)
-		return
+		fn(w, r)
 	}
-
-	fn(w, r)
 }
 
 func updateStream(w http.ResponseWriter, r *http.Request) {
