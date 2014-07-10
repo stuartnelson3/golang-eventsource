@@ -1,7 +1,7 @@
-Event source example server. Direct the clients to make a request to `/stream`, then send a `POST` request to send events out to all connected clients.
+Event source example server. Direct the clients to make a `GET` request to `/stream` to open the event source connection, then send a `POST` request to `/update_stream` to send events out to all connected clients.
 
 # License
-Copyright (c) 2013 Stuart Nelson
+Copyright (c) 2014 Stuart Nelson
 
 MIT License
 
