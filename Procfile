@@ -1,1 +1,1 @@
-web: server -p=$PORT -token=$TOKEN
+web: golang-eventsource -p=$PORT -token=$TOKEN
