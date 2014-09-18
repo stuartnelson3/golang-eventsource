@@ -1,0 +1,26 @@
+{
+	"ImportPath": "github.com/tahi-project/golang-eventsource",
+	"GoVersion": "go1.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/antage/eventsource",
+			"Rev": "1077d16d7464a3e16dc339a01db15968b05203d6"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "14f550f51af52180c2eefed15e5fd18d63c0a64a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/handlers",
+			"Rev": "470089673c69baefb2d80b13019a4ab6f05e2aad"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "14cafe28513321476c73967a5a4f3454b6129c46"
+		},
+		{
+			"ImportPath": "github.com/gorilla/pat",
+			"Rev": "ae2e162c4b2ae96aa66b596b2c18f17834299ed0"
+		}
+	]
+}
