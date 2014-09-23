@@ -47,7 +47,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+*port, handler))
 }
 
-func tokenHandler(fn func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
+func tokenHandler(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		if r.FormValue("token") != *token {
