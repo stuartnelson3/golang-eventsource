@@ -40,6 +40,7 @@ func main() {
 	m := pat.New()
 	m.Get("/stream", tokenHandler(es.ServeHTTP))
 	m.Post("/update_stream", tokenHandler(updateStream))
+	m.Get("/heartbeat", heartbeatHandler)
 
 	handler := handlers.LoggingHandler(os.Stdout, m)
 
@@ -62,4 +63,8 @@ func tokenHandler(fn func(w http.ResponseWriter, r *http.Request)) func(http.Res
 func updateStream(w http.ResponseWriter, r *http.Request) {
 	es.SendEventMessage(r.FormValue("card"), r.FormValue("stream"), strconv.Itoa(id))
 	id++
+}
+
+func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
