@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/antage/eventsource"
@@ -34,6 +36,8 @@ var (
 
 func main() {
 	flag.Parse()
+
+	trapSignals()
 
 	defer es.Close()
 
@@ -67,4 +71,15 @@ func updateStream(w http.ResponseWriter, r *http.Request) {
 
 func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
+}
+
+func trapSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	go func() {
+		sig := <-c
+		log.Printf("Received %s! Exiting...\n", sig)
+		os.Exit(0)
+	}()
 }
