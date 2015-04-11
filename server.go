@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/antage/eventsource"
@@ -35,11 +37,14 @@ var (
 func main() {
 	flag.Parse()
 
+	trapSignals()
+
 	defer es.Close()
 
 	m := pat.New()
 	m.Get("/stream", tokenHandler(es.ServeHTTP))
 	m.Post("/update_stream", tokenHandler(updateStream))
+	m.Get("/heartbeat", heartbeatHandler)
 
 	handler := handlers.LoggingHandler(os.Stdout, m)
 
@@ -62,4 +67,19 @@ func tokenHandler(fn http.HandlerFunc) http.HandlerFunc {
 func updateStream(w http.ResponseWriter, r *http.Request) {
 	es.SendEventMessage(r.FormValue("card"), r.FormValue("stream"), strconv.Itoa(id))
 	id++
+}
+
+func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func trapSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	go func() {
+		sig := <-c
+		log.Printf("Received %s! Exiting...\n", sig)
+		os.Exit(0)
+	}()
 }
